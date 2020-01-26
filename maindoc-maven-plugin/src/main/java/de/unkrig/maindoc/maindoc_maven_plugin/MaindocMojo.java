@@ -50,14 +50,8 @@ import de.unkrig.doclet.main.MainDoclet;
 ) public
 class MaindocMojo extends AbstractMojo {
 
-//    /**
-//     * Location of the file.
-//     */
-//    @Parameter( defaultValue = "${project.build.directory}", property = "outputDir", required = true)
-//    private File outputDirectory;
-
     @Parameter(defaultValue = "${project}", readonly = true, required = true) MavenProject project;
-    @Parameter(alias = "-d", defaultValue = "target/classes")                 File         destination;
+    @Parameter(defaultValue = "target/classes")                               File         destination;
     @Parameter(defaultValue = "src/main/java")                                List<File>   sourcepath;
     @Parameter(defaultValue = "main(String[])")                               String       method;
     @Parameter                                                                Charset      docEncoding;
