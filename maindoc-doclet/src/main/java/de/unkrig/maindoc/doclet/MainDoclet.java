@@ -66,6 +66,7 @@ import de.unkrig.commons.text.Notations;
 import de.unkrig.commons.util.CommandLineOptions;
 import de.unkrig.commons.util.annotation.CommandLineOption;
 import de.unkrig.commons.util.annotation.CommandLineOption.Cardinality;
+import de.unkrig.html2txt.Html2Txt;
 
 /**
  * @see #start(RootDoc)
@@ -75,22 +76,43 @@ import de.unkrig.commons.util.annotation.CommandLineOption.Cardinality;
 public
 class MainDoclet {
 
-    static { AssertionUtil.enableAssertionsForThisClass(); }
+	static { AssertionUtil.enableAssertionsForThisClass(); }
 
-    private static File              destination = new File(".");
-    private static String            method      = "main(String[])";
-    private static Charset           docEncoding = Charset.defaultCharset();
+	// Block tag names.
+	public static final String BT_main_commandLineOptionGroup   = "@main.commandLineOptionGroup";
+	public static final String BT_main_commandLineOptionComment = "@main.commandLineOptionComment";
+	public static final String BT_param                         = "@param";
+
+	// Inline tag names.
+	public static final String IT_main_commandLineOptions = "@main.commandLineOptions";
+	public static final String IT_code                    = "@code";
+	public static final String IT_literal                 = "@literal";
+	public static final String IT_value                   = "@value";
+	public static final String IT_link                    = "@link";
+	public static final String IT_linkplain               = "@linkplain";
+	public static final String IT_docRoot                 = "@docRoot";
+	public static final String IT_constantsof             = "@constantsof";
+	public static final String IT_constantsofplain        = "@constantsofplain";
+
+    private static File              destinationDirectory  = new File(".");
+    private static String            method                = "main(String[])";
+    private static Charset           htmlOutputFileCharset = Charset.defaultCharset();
     @Nullable private static String  charset;
     @Nullable private static String  doctitle;
     private static boolean           quiet;
 
+    private static final Html2Txt html2Txt = new Html2Txt();
+
     /**
-     * Where to create the HTML files. The effective name of each file is "<var>dest-dir</var>{@code
-     * /}<var>package</var>{@code /}<var>class</var>{@code .}<var>method</var>{@code .html}". The default destination
-     * directory is "{@code .}".
+     * Where to create the .html and .txt output files.
+     * The effective name of each file is "<var>destinationDirectory</var>{@code /}<var>package</var>{@code
+     * /}<var>class</var>{@code .}<var>method</var>{@code .html}", resp. "...{@code .txt}".
+     * The default destination directory is "{@code .}".
+     *
+     * @main.commandLineOptionGroup HTML generation
      */
     @CommandLineOption(name = { "-d", "--destination" }) public static void
-    setDestination(File destDir) { MainDoclet.destination = destDir; }
+    setDestination(File destinationDirectory) { MainDoclet.destinationDirectory = destinationDirectory; }
 
     /**
      * The signature of the method to document. The default is {@code "main(String[])"}; for a doclet, e.g., you may
@@ -100,40 +122,89 @@ class MainDoclet {
     setMethod(String method) { MainDoclet.method = method; }
 
     /**
-     * The charset to use when writing the HTML files. The default is the JVM default charset, "${file.encoding}".
+     * The charset to use when writing the {@code .html} files. The default is the JVM default charset,
+     * "${file.encoding}".
+     *
+     * @main.commandLineOptionGroup HTML generation
      */
     @CommandLineOption public static void
-    setDocencoding(Charset charset) { MainDoclet.docEncoding = charset; }
+    setDocencoding(Charset charset) {
+    	MainDoclet.htmlOutputFileCharset = charset;
+    	MainDoclet.html2Txt.setInputCharset(charset);
+    }
 
     /**
-     * The HTML character set for this document. If set, then the following tag appears in the {@code <head>} of all
-     * generated documents:<br />
+     * The HTML character set for this document. If set, then the following tag appears in the {@code <head>} of the
+     * generated HTML document:<br />
      * {@code <meta http-equiv="Content-Type" content="text/html; charset="}<var>charset</var>{@code ">}
+     *
+     * @main.commandLineOptionGroup HTML generation
      */
     @CommandLineOption public static void
-    setCharset(String name) { MainDoclet.charset = name; }
+    setCharset(String charset) { MainDoclet.charset = charset; }
 
     /**
-     * The title to place near the top of the output file.
+     * The title to place near the top of the {@code .html} output file.
+     *
+     * @main.commandLineOptionGroup HTML generation
      */
     @CommandLineOption public static void
     setDoctitle(String title) { MainDoclet.doctitle = title; }
 
     /**
-     * Suppresses normal output.
+     * Suppresses normal output (like "Generating...").
      */
     @CommandLineOption public static void
     setQuiet() { MainDoclet.quiet = true; }
 
-    /** @see #setWindowtitle(String) */
+    /**
+     * The charset to use when writing the .txt output files. The default is the JVM default charset, "${file.encoding}".
+     *
+     * @main.commandLineOptionGroup   HTML-to-txt conversion
+     * @main.commandLineOptionComment (defaults to the JVM default charset, "${file.encoding}".)
+     */
+    @CommandLineOption public static void
+    setTxtOutputFileCharset(Charset charset) { MainDoclet.html2Txt.setOutputCharset(charset); }
+
+    /**
+     * @see MainDoclet#setTxtPageWidth(int)
+     * @main.commandLineOptionComment (defaults to 0)
+     */
+    @CommandLineOption public static void
+    setTxtPageLeftMarginWidth(int n) { MainDoclet.html2Txt.setPageLeftMarginWidth(n); }
+
+    /**
+     * @see MainDoclet#setTxtPageWidth(int)
+     * @main.commandLineOptionComment (defaults to 1)
+     */
+    @CommandLineOption public static void
+    setTxtPageRightMarginWidth(int n) {
+    	MainDoclet.html2Txt.setPageRightMarginWidth(n);
+	}
+
+    /**
+     * The maximum length of output lines is "<var>pageWidth</var> - <var>rightMarginWidth</var>".
+     *
+     * @main.commandLineOptionGroup   HTML-to-txt conversion
+     * @main.commandLineOptionComment (defaults to "$COLUMNS" or 80)
+     * @see #setTxtPageRightMarginWidth(int)
+     */
+    @CommandLineOption public static void
+    setTxtPageWidth(int n) { MainDoclet.html2Txt.setPageWidth(n); }
+
+    /** @main.commandLineOptionGroup Compatibility */
     @CommandLineOption public static void setBottom(String text) {}
-    /** @see #setWindowtitle(String) */
+    /** @main.commandLineOptionGroup Compatibility */
     @CommandLineOption public static void addLink(String extDocUrl) {}
-    /** @see #setWindowtitle(String) */
+    /** @main.commandLineOptionGroup Compatibility */
     @CommandLineOption public static void addLinkoffline(String extDocUrl, String packageListLoc) {}
-    /** For compatibility with the JAVADOC standard doclet; ignored. */
+    /** @main.commandLineOptionGroup Compatibility */
     @CommandLineOption public static void setWindowtitle(String title) {}
 
+    /**
+     * See <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/javadoc/doclet/overview.html">"Doclet
+     * Overview"</a>.
+     */
     public static LanguageVersion languageVersion() { return LanguageVersion.JAVA_1_5; }
 
     /**
@@ -159,44 +230,56 @@ class MainDoclet {
     }
 
     /**
-     * A doclet that generates simple HTML files for a particular method (e.g. "main(String[])") of a set of classes.
-     * <p>
-     *   Generates {@code <dt>} / {@code <dd>} pairs for all methods that are annotated with {@link CommandLineOption
-     *   &#64;CommandLineOption}.
-     * </p>
+     * A doclet that generates {@code .html} and {@code .txt} documentation for the "{@code main()}" method of a Java
+     * class.
      *
-     * <h3>Doclet command line options:</h3>
-     *
+     * <h3>Command line options:</h3>
      * <dl>
      * {@main.commandLineOptions}
+     * </dl>
+     *
+     * <h4>HTML generation options:</h4>
+     * <dl>
+     * {@main.commandLineOptions HTML generation}
+     * </dl>
+     *
+     * <h4>HTML-to-txt conversion options:</h4>
+     * <dl>
+     * {@main.commandLineOptions HTML-to-txt conversion}
+     * </dl>
+     *
+     * <h4>Compatibility options:</h4>
+     * These options exist for compatibility with the standard JAVADOC doclet, and are ignored.
+     * <dl>
+     * {@main.commandLineOptions Compatibility}
      * </dl>
      *
      * <h3>Supported inline tags:</h3>
      *
      * <dl>
-     *   <dt><a name="main.commandLineOptions" /><code>{&#64;main.commandLineOptions}</code></dt>
-     *   <dt><code>{&#64;main.commandLineOptions</code> <var>group-name</var><code>}</code></dt>
+     *   <dt><a name="main.commandLineOptions" /><code>{{@value #IT_main_commandLineOptions}}</code></dt>
+     *   <dt><code>{{@value #IT_main_commandLineOptions} <var>group-name</var>}</code></dt>
      *   <dd>
-     *     Documentation for all command line options, generated from <code><a href="http://commons.unkrig.de/javadoc/c
-     *ommons-util/de/unkrig/commons/util/annotation/CommandLineOption.html">&#64;CommandLineOption</a></code>-annotated
-     *     setter methods.<br />
+     *     Generates {@code <dt>} / {@code <dd>} pairs for all command line options, generated from
+     *     <code>@CommandLineOption</code>-annotated setter methods.
+     *     <br />
      *     If a <var>group-name</var> is given, then only those options appear which have a
-     *     <a href="#main.commandLineOptionGroup"><code>{&#64;main.commandLineOptionGroup}</code> block tag</a> with
+     *     <a href="#main.commandLineOptionGroup"><code>{@value #BT_main_commandLineOptionGroup}</code> block tag</a> with
      *     equal <var>group-name</var>; otherwise, only those options appear which have <em>no</em>
-     *     <code>{&#64;main.commandLineOptionGroup}</code> block tag.
+     *     <code>{@value #BT_main_commandLineOptionGroup}</code> block tag.
      *   </dd>
-     *   <dt><code>{&#64;code <var>text</var>}</code></dt>
-     *   <dt><code>{&#64;literal <var>text</var>}</code></dt>
-     *   <dt><code>{&#64;value <var>package</var>.<var>class</var>#<var>field</var>}</code></dt>
-     *   <dt><code>{&#64;link      <var>package</var>.<var>class</var>#<var>member</var> <var>label</var>}</code></dt>
-     *   <dt><code>{&#64;linkplain <var>package</var>.<var>class</var>#<var>member</var> <var>label</var>}</code></dt>
-     *   <dt><code>{&#64;docRoot}</code></dt>
+     *   <dt><code>{{@value #IT_code}      <var>text</var>}</code></dt>
+     *   <dt><code>{{@value #IT_literal}   <var>text</var>}</code></dt>
+     *   <dt><code>{{@value #IT_value}     <var>package</var>.<var>class</var>#<var>field</var>}</code></dt>
+     *   <dt><code>{{@value #IT_link}      <var>package</var>.<var>class</var>#<var>member</var> <var>label</var>}</code></dt>
+     *   <dt><code>{{@value #IT_linkplain} <var>package</var>.<var>class</var>#<var>member</var> <var>label</var>}</code></dt>
+     *   <dt><code>{{@value #IT_docRoot}}</code></dt>
      *   <dd>
      *     <a href="http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#javadoctags">Same as for
      *     the standard doclet</a>.
      *   </dd>
-     *   <dt><code>{&#64;constantsof      <var>package</var>.<var>enum-type</var>}</code></dt>
-     *   <dt><code>{&#64;constantsofplain <var>package</var>.<var>enum-type</var>}</code></dt>
+     *   <dt><code>{{@value #IT_constantsof}      <var>package</var>.<var>enum-type</var>}</code></dt>
+     *   <dt><code>{{@value #IT_constantsofplain} <var>package</var>.<var>enum-type</var>}</code></dt>
      *   <dd>
      *     Links to all constants of the designated enum type, separated with "{@code , }" (a comma and a space).
      *   </dd>
@@ -206,11 +289,25 @@ class MainDoclet {
      *
      * <dl>
      *   <dt>
-     *     <a name="main.commandLineOptionGroup" /><code>{&#64;main.commandLineOptionGroup}</code> <var>group-name</var>
+     *     <a name="main.commandLineOptionGroup" /><code>{@value #BT_main_commandLineOptionGroup}
+     *     <var>group-name</var></code>
      *   </dt>
      *   <dd>
      *     Assigns this command line option setter method to a "group"; see <a
-     *     href="#main.commandLineOptions">the <code>{&#64;main.commandLineOptions}</code> inline tag</a>.
+     *     href="#main.commandLineOptions">the <code>{@value #IT_main_commandLineOptions}</code> inline tag</a>.
+     *   </dd>
+     *   <dt>
+     *     <code>{@value #BT_main_commandLineOptionComment} <var>text</var></code>
+     *   </dt>
+     *   <dd>
+     *     Renders the <var>text</var> at the end of the command line options's {@code <dt>}; often used to document
+     *     the command line option's default value
+     *   </dd>
+     *   <dt>
+     *     <code>{@value #BT_param} <var>param-name</var> <var>text</var></code>
+     *   </dt>
+     *   <dd>
+     *     Use that text as the parameter name
      *   </dd>
      * </dl>
      */
@@ -245,11 +342,12 @@ class MainDoclet {
             throw new IOException();
         }
 
+        // Identify the methods to document.
         for (ClassDoc cd : allClasses) {
             for (MethodDoc md : cd.methods()) {
                 String tmp = md.name() + md.flatSignature();
                 if (MainDoclet.method.equals(tmp)) {
-                    MainDoclet.convertDoc(md, MainDoclet.destination, MainDoclet.docEncoding, rootDoc);
+                    MainDoclet.convertDoc(md, rootDoc);
                 }
             }
         }
@@ -258,7 +356,7 @@ class MainDoclet {
     }
 
     private static void
-    convertDoc(Doc doc, File destination, Charset charset, RootDoc rootDoc) throws IOException {
+    convertDoc(Doc doc, RootDoc rootDoc) throws IOException {
 
         final ClassDoc cd = (
             doc.isClass() ? (ClassDoc) doc :
@@ -273,16 +371,20 @@ class MainDoclet {
 
                 String tagName = tag.name();
 
-                if ("@main.commandLineOptions".equals(tagName) || "@command-line-options".equals(tagName)) {
+                // Backwards compatibility.
+                if ("@command-line-options".equals(tagName)) {
+                	rootDoc.printWarning(
+            			ref.position(),
+            			(
+        					"\"@command-line-options\" is deprecated; use \""
+							+ MainDoclet.IT_main_commandLineOptions
+							+ "\" instead"
+    					)
+        			);
+                	tagName = MainDoclet.IT_main_commandLineOptions;
+                }
 
-                    if ("@command-line-options".equals(tagName)) {
-
-                        // "@command-line-options" is deprecated because it lacks a "." in its name.
-                        rootDoc.printWarning(
-                            ref.position(),
-                            "\"@command-line-options\" is deprecated; use \"@main.commandLineOptions\" instead"
-                        );
-                    }
+                if (MainDoclet.IT_main_commandLineOptions.equals(tagName)) {
 
                     StringBuilder sb = new StringBuilder();
 
@@ -303,7 +405,7 @@ class MainDoclet {
 
                             // Check if the command line option GROUP matches.
                             GROUP_MATCHES: {
-                                Tag[] clogts = md.tags("@main.commandLineOptionGroup");
+                                Tag[] clogts = md.tags(MainDoclet.BT_main_commandLineOptionGroup);
 
                                 // Backwards compatibility:
                                 if (clogts.length == 0) {
@@ -315,7 +417,9 @@ class MainDoclet {
                                             ref.position(),
                                             (
                                                 "\"@command-line-option-group\" is deprecated; "
-                                                + "use \"@main.commandLineOptionGroup\" instead"
+                                                + "use \""
+                                        		+ MainDoclet.BT_main_commandLineOptionGroup
+                                        		+ "\"\" instead"
                                             )
                                         );
                                     }
@@ -416,7 +520,7 @@ class MainDoclet {
                 for (Parameter p : md.parameters()) {
 
                     // If there is an "@param" tag for the parameter, use that.
-                    for (Tag paramTag : md.tags("@param")) {
+                    for (Tag paramTag : md.tags(MainDoclet.BT_param)) {
                         String fs = this.fromTags(paramTag.firstSentenceTags(), md, rootDoc);
                         if (paramTag.text().startsWith(p.name() + " ")) {
                             suffix += fs.substring(p.name().length());
@@ -461,6 +565,10 @@ class MainDoclet {
                 default:           throw new AssertionError(cardinality);
                 }
 
+                for (Tag commentTag : md.tags(MainDoclet.BT_main_commandLineOptionComment)) {
+                	suffix += ' ' + this.fromTags(commentTag.firstSentenceTags(), md, rootDoc);
+                }
+
                 for (String name : names) {
                     if (!name.startsWith("-")) {
                         name = (name.length() == 1 ? "-" : "--") + name;
@@ -477,8 +585,8 @@ class MainDoclet {
             return;
         }
 
-        File outputFile = new File(
-            destination,
+        File htmlOutputFile = new File(
+            MainDoclet.destinationDirectory,
             (
                 cd.qualifiedName().replace('.', File.separatorChar)
                 + "."
@@ -488,47 +596,54 @@ class MainDoclet {
             )
         );
 
-        if (!MainDoclet.quiet) System.err.println("Generating \"" + outputFile + "\"...");
+        if (!MainDoclet.quiet) System.err.println("Generating \"" + htmlOutputFile + "\"...");
 
-        if (destination.exists() && !outputFile.getParentFile().isDirectory()) outputFile.getParentFile().mkdirs();
+        if (MainDoclet.destinationDirectory.exists() && !htmlOutputFile.getParentFile().isDirectory()) htmlOutputFile.getParentFile().mkdirs();
+
+        IoUtil.outputFilePrintWriter(
+            htmlOutputFile,
+            MainDoclet.htmlOutputFileCharset,
+            new ConsumerWhichThrows<PrintWriter, RuntimeException>() {
+
+                @Override public void
+                consume(PrintWriter pw) {
+
+                    pw.println("<html>");
+                    pw.println("  <head>");
+                    if (MainDoclet.charset != null) {
+                        pw.println(
+                            "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset="
+                            + MainDoclet.charset
+                            + "\" />"
+                        );
+                    }
+                    pw.println("  </head>");
+                    pw.println("  <body>");
+                    if (MainDoclet.doctitle != null) {
+                        pw.println("    <h1>" + MainDoclet.doctitle + "</h1>");
+                    }
+                    pw.println(htmlText);
+                    pw.println("  </body>");
+                    pw.println("</html>");
+                }
+            }
+        );
+
+        // Convert generated HTML document into plain text format.
+        File txtOutputFile;
+        {
+        	String ofn = htmlOutputFile.getName();
+        	assert (ofn.endsWith(".html"));
+        	ofn = ofn.substring(0, ofn.length() - 5) + ".txt";
+        	txtOutputFile = new File(htmlOutputFile.getParentFile(), ofn);
+        }
+
+        if (!MainDoclet.quiet) System.err.println("Generating \"" + txtOutputFile + "\"...");
 
         try {
-            IoUtil.outputFilePrintWriter(
-                outputFile,
-                charset,
-                new ConsumerWhichThrows<PrintWriter, Exception>() {
-
-                    @Override public void
-                    consume(PrintWriter pw) throws Exception {
-
-                        pw.println("<html>");
-                        pw.println("  <head>");
-                        if (MainDoclet.charset != null) {
-                            pw.println(
-                                "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset="
-                                + MainDoclet.charset
-                                + "\" />"
-                            );
-                        }
-                        pw.println("  </head>");
-                        pw.println("  <body>");
-                        if (MainDoclet.doctitle != null) {
-                            pw.println("    <h1>" + MainDoclet.doctitle + "</h1>");
-                        }
-                        pw.println(htmlText);
-                        pw.println("  </body>");
-                        pw.println("</html>");
-                    }
-                }
-            );
-
-            File txtOutputFile = new File(outputFile.getParentFile(), outputFile.getName().replace(".html", ".txt"));
-
-            de.unkrig.html2txt.Main.main(new String[] {
-                outputFile.getAbsolutePath(),
-                txtOutputFile.getAbsolutePath()
-            });
-
+			MainDoclet.html2Txt.html2txt(htmlOutputFile, txtOutputFile);
+        } catch (IOException ioe) {
+        	throw ioe;
         } catch (Exception e) {
             throw new IOException(null, e);
         }
