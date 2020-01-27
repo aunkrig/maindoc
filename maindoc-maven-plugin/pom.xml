@@ -23,8 +23,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>de.unkrig</groupId>
-      <artifactId>doclet-main</artifactId>
+      <groupId>de.unkrig.maindoc</groupId>
+      <artifactId>maindoc-doclet</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
