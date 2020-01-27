@@ -41,7 +41,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
-import de.unkrig.doclet.main.MainDoclet;
+import de.unkrig.maindoc.doclet.MainDoclet;
 
 @Mojo(
     name                         = "maindoc",
@@ -83,8 +83,6 @@ class MaindocMojo extends AbstractMojo {
         
         List<String> args = new ArrayList<>();
 
-this.getLog().info("user.dir=" + System.getProperty("user.dir"));
-
         args.add("-doclet");
         args.add(MainDoclet.class.getName());
         
@@ -121,37 +119,9 @@ this.getLog().info("user.dir=" + System.getProperty("user.dir"));
         
         for (String p : this.packages) args.add(p);
         
-        this.getLog().debug("args=" + args);
-        
         int status = com.sun.tools.javadoc.Main.execute(args.toArray(new String[args.size()]));
         
         if (status != 0) throw new MojoExecutionException("Javadoc failed");
-
-//        File f = outputDirectory;
-//
-//        if (!f.exists()) {
-//            f.mkdirs();
-//        }
-//
-//        File touch = new File(f, "touch.txt");
-//
-//        FileWriter w = null;
-//        try {
-//            w = new FileWriter(touch);
-//
-//            w.write("touch.txt");
-//        } catch (IOException e) {
-//            throw new MojoExecutionException("Error creating file " + touch, e);
-//        }
-//        finally {
-//            if (w != null) {
-//                try {
-//                    w.close();
-//                } catch (IOException e) {
-//                    // ignore
-//                }
-//            }
-//        }
     }
 
     private static String
