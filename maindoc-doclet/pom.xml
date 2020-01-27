@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>de.unkrig</groupId>
 			<artifactId>html2txt</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>sun.jdk</groupId>
@@ -97,6 +97,7 @@
 					<encoding>UTF-8</encoding>
 					<docencoding>UTF-8</docencoding>
 					<charset>UTF-8</charset>
+					<quiet>true</quiet>
 				</configuration>
 			</plugin>
 

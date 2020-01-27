@@ -72,7 +72,7 @@ import de.unkrig.commons.util.annotation.CommandLineOption.Cardinality;
  * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/javadoc/doclet/overview.html">Doclet
  *      Overview</a>
  */
-public final
+public
 class MainDoclet {
 
     static { AssertionUtil.enableAssertionsForThisClass(); }
@@ -133,8 +133,6 @@ class MainDoclet {
     @CommandLineOption public static void addLinkoffline(String extDocUrl, String packageListLoc) {}
     /** For compatibility with the JAVADOC standard doclet; ignored. */
     @CommandLineOption public static void setWindowtitle(String title) {}
-
-    private MainDoclet() {}
 
     public static LanguageVersion languageVersion() { return LanguageVersion.JAVA_1_5; }
 
