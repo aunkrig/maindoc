@@ -76,23 +76,23 @@ import de.unkrig.html2txt.Html2Txt;
 public
 class MainDoclet {
 
-	static { AssertionUtil.enableAssertionsForThisClass(); }
+    static { AssertionUtil.enableAssertionsForThisClass(); }
 
-	// Block tag names.
-	public static final String BT_main_commandLineOptionGroup   = "@main.commandLineOptionGroup";
-	public static final String BT_main_commandLineOptionComment = "@main.commandLineOptionComment";
-	public static final String BT_param                         = "@param";
+    // Block tag names.
+    public static final String BT_main_commandLineOptionGroup   = "@main.commandLineOptionGroup";
+    public static final String BT_main_commandLineOptionComment = "@main.commandLineOptionComment";
+    public static final String BT_param                         = "@param";
 
-	// Inline tag names.
-	public static final String IT_main_commandLineOptions = "@main.commandLineOptions";
-	public static final String IT_code                    = "@code";
-	public static final String IT_literal                 = "@literal";
-	public static final String IT_value                   = "@value";
-	public static final String IT_link                    = "@link";
-	public static final String IT_linkplain               = "@linkplain";
-	public static final String IT_docRoot                 = "@docRoot";
-	public static final String IT_constantsof             = "@constantsof";
-	public static final String IT_constantsofplain        = "@constantsofplain";
+    // Inline tag names.
+    public static final String IT_main_commandLineOptions = "@main.commandLineOptions";
+    public static final String IT_code                    = "@code";
+    public static final String IT_literal                 = "@literal";
+    public static final String IT_value                   = "@value";
+    public static final String IT_link                    = "@link";
+    public static final String IT_linkplain               = "@linkplain";
+    public static final String IT_docRoot                 = "@docRoot";
+    public static final String IT_constantsof             = "@constantsof";
+    public static final String IT_constantsofplain        = "@constantsofplain";
 
     private static File              destinationDirectory  = new File(".");
     private static String            method                = "main(String[])";
@@ -129,8 +129,8 @@ class MainDoclet {
      */
     @CommandLineOption public static void
     setDocencoding(Charset charset) {
-    	MainDoclet.htmlOutputFileCharset = charset;
-    	MainDoclet.html2Txt.setInputCharset(charset);
+        MainDoclet.htmlOutputFileCharset = charset;
+        MainDoclet.html2Txt.setInputCharset(charset);
     }
 
     /**
@@ -179,8 +179,8 @@ class MainDoclet {
      */
     @CommandLineOption public static void
     setTxtPageRightMarginWidth(int n) {
-    	MainDoclet.html2Txt.setPageRightMarginWidth(n);
-	}
+        MainDoclet.html2Txt.setPageRightMarginWidth(n);
+    }
 
     /**
      * The maximum length of output lines is "<var>pageWidth</var> - <var>rightMarginWidth</var>".
@@ -373,15 +373,15 @@ class MainDoclet {
 
                 // Backwards compatibility.
                 if ("@command-line-options".equals(tagName)) {
-                	rootDoc.printWarning(
-            			ref.position(),
-            			(
-        					"\"@command-line-options\" is deprecated; use \""
-							+ MainDoclet.IT_main_commandLineOptions
-							+ "\" instead"
-    					)
-        			);
-                	tagName = MainDoclet.IT_main_commandLineOptions;
+                    rootDoc.printWarning(
+                        ref.position(),
+                        (
+                            "\"@command-line-options\" is deprecated; use \""
+                            + MainDoclet.IT_main_commandLineOptions
+                            + "\" instead"
+                        )
+                    );
+                    tagName = MainDoclet.IT_main_commandLineOptions;
                 }
 
                 if (MainDoclet.IT_main_commandLineOptions.equals(tagName)) {
@@ -418,8 +418,8 @@ class MainDoclet {
                                             (
                                                 "\"@command-line-option-group\" is deprecated; "
                                                 + "use \""
-                                        		+ MainDoclet.BT_main_commandLineOptionGroup
-                                        		+ "\"\" instead"
+                                                + MainDoclet.BT_main_commandLineOptionGroup
+                                                + "\"\" instead"
                                             )
                                         );
                                     }
@@ -566,7 +566,7 @@ class MainDoclet {
                 }
 
                 for (Tag commentTag : md.tags(MainDoclet.BT_main_commandLineOptionComment)) {
-                	suffix += ' ' + this.fromTags(commentTag.firstSentenceTags(), md, rootDoc);
+                    suffix += ' ' + this.fromTags(commentTag.firstSentenceTags(), md, rootDoc);
                 }
 
                 for (String name : names) {
@@ -632,18 +632,18 @@ class MainDoclet {
         // Convert generated HTML document into plain text format.
         File txtOutputFile;
         {
-        	String ofn = htmlOutputFile.getName();
-        	assert (ofn.endsWith(".html"));
-        	ofn = ofn.substring(0, ofn.length() - 5) + ".txt";
-        	txtOutputFile = new File(htmlOutputFile.getParentFile(), ofn);
+            String ofn = htmlOutputFile.getName();
+            assert (ofn.endsWith(".html"));
+            ofn = ofn.substring(0, ofn.length() - 5) + ".txt";
+            txtOutputFile = new File(htmlOutputFile.getParentFile(), ofn);
         }
 
         if (!MainDoclet.quiet) System.err.println("Generating \"" + txtOutputFile + "\"...");
 
         try {
-			MainDoclet.html2Txt.html2txt(htmlOutputFile, txtOutputFile);
+            MainDoclet.html2Txt.html2txt(htmlOutputFile, txtOutputFile);
         } catch (IOException ioe) {
-        	throw ioe;
+            throw ioe;
         } catch (Exception e) {
             throw new IOException(null, e);
         }
