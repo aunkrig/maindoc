@@ -233,28 +233,28 @@ class MainDoclet {
      * A doclet that generates {@code .html} and {@code .txt} documentation for the "{@code main()}" method of a Java
      * class.
      *
-     * <h3>Command line options:</h3>
+     * <h2>Command line options:</h2>
      * <dl>
      * {@main.commandLineOptions}
      * </dl>
      *
-     * <h4>HTML generation options:</h4>
+     * <h3>HTML generation options:</h3>
      * <dl>
      * {@main.commandLineOptions HTML generation}
      * </dl>
      *
-     * <h4>HTML-to-txt conversion options:</h4>
+     * <h3>HTML-to-txt conversion options:</h3>
      * <dl>
      * {@main.commandLineOptions HTML-to-txt conversion}
      * </dl>
      *
-     * <h4>Compatibility options:</h4>
+     * <h3>Compatibility options:</h3>
      * These options exist for compatibility with the standard JAVADOC doclet, and are ignored.
      * <dl>
      * {@main.commandLineOptions Compatibility}
      * </dl>
      *
-     * <h3>Supported inline tags:</h3>
+     * <h2>Supported inline tags:</h2>
      *
      * <dl>
      *   <dt><a name="main.commandLineOptions" /><code>{{@value #IT_main_commandLineOptions}}</code></dt>
@@ -285,7 +285,7 @@ class MainDoclet {
      *   </dd>
      * </dl>
      *
-     * <h3>Supported block tags:</h3>
+     * <h2>Supported block tags:</h2>
      *
      * <dl>
      *   <dt>
