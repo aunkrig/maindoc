@@ -452,14 +452,7 @@ class MainDoclet {
                                 if (MainDoclet.getCompanionOf(md2, rootDoc) == md) this.attributeTerm(md2, sb, rootDoc);
                             }
 
-                            sb.append("<dd>\n  ");
-                            Tag deprecatedTag = Tags.optionalTag(md, "deprecated", rootDoc);
-                            if (deprecatedTag != null) {
-                                sb.append("<i><b>Deprecated</b> - ");
-                                sb.append(this.fromTags(deprecatedTag.inlineTags(), md, rootDoc));
-                                sb.append("</i>");
-                            }
-
+                            String dd;
                             {
                                 Tag[] its = md.inlineTags();
 
@@ -475,10 +468,19 @@ class MainDoclet {
                                     }
                                 }
 
-                                sb.append(this.fromTags(its, md, rootDoc));
+                                dd = this.fromTags(its, md, rootDoc);
                             }
 
-                            sb.append("\n</dd>\n");
+                            {
+                                Tag deprecatedTag = Tags.optionalTag(md, "deprecated", rootDoc);
+                                if (deprecatedTag != null) {
+                                    dd = "<i><b>Deprecated</b> - " + this.fromTags(deprecatedTag.inlineTags(), md, rootDoc) + "</i> " + dd;
+                                }
+                            }
+
+                            sb.append("  <dd>\n");
+                            sb.append(dd.replaceAll("(?m)^", "    "));
+                            sb.append("\n  </dd>\n");
                         }
                     }
 
@@ -573,7 +575,7 @@ class MainDoclet {
                     if (!name.startsWith("-")) {
                         name = (name.length() == 1 ? "-" : "--") + name;
                     }
-                    out.append("<dt><code>" + name + "</code>" + suffix + "</dt>\n");
+                    out.append("  <dt><code>" + name + "</code>" + suffix + "</dt>\n");
                 }
             }
         };
@@ -622,7 +624,7 @@ class MainDoclet {
                     if (MainDoclet.doctitle != null) {
                         pw.println("    <h1>" + MainDoclet.doctitle + "</h1>");
                     }
-                    pw.println(htmlText);
+                    pw.println(htmlText.replaceAll("(?m)^", "    "));
                     pw.println("  </body>");
                     pw.println("</html>");
                 }
