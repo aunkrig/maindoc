@@ -54,7 +54,7 @@ class MaindocMojo extends AbstractMojo {
     @Parameter(defaultValue = "target/classes")                               File         destination;
     @Parameter(defaultValue = "src/main/java")                                List<File>   sourcepath;
     @Parameter(defaultValue = "main(String[])")                               String       method;
-    @Parameter                                                                Charset      docEncoding;
+    @Parameter                                                                String       docEncoding;
     @Parameter                                                                String       charset;
     @Parameter                                                                String       doctitle;
     @Parameter(defaultValue = "false")                                        boolean      quiet;
@@ -102,7 +102,7 @@ class MaindocMojo extends AbstractMojo {
 
         if (this.docEncoding != null) {
             args.add("-docencoding");
-            args.add(this.docEncoding.toString());
+            args.add(this.docEncoding);
         }
         
         if (this.charset != null) {
