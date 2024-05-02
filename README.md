@@ -20,3 +20,5 @@ produce this HTML document:
 http://zz.unkrig.de/maindoc/zz-patch/Main.main(String%5b%5d).html
 
 # Change Log
+
+See [here](https://unkrig.de/w/MAIN_doclet#Change_Log).
