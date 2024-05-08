@@ -16,3 +16,27 @@ The MAVEN plugin for generating documentation for a single Java method from doc 
 * String `<doctitle>`
 * boolean `<quiet>` (default = false)
 * String[] `<packages>`
+
+# Example
+
+You can use the plugin in your own projects like this:
+
+    <project ...>
+        ...
+        <build>
+            <plugins>
+                ....
+                <plugin>
+                    <groupId>de.unkrig.maindoc</groupId>
+                    <artifactId>maindoc-maven-plugin</artifactId>
+                    <version>1.0.6</version>
+    
+                    <executions><execution><goals><goal>maindoc</goal></goals></execution></executions>
+    
+                    <configuration>
+                        <packages><param>de.unkrig.clodemo</param></packages>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </project>
