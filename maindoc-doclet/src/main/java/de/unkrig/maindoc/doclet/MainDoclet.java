@@ -85,6 +85,7 @@ class MainDoclet {
 
     // Inline tag names.
     public static final String IT_main_commandLineOptions = "@main.commandLineOptions";
+    public static final String IT_main_maindoc            = "@main.maindoc";
     public static final String IT_code                    = "@code";
     public static final String IT_literal                 = "@literal";
     public static final String IT_value                   = "@value";
@@ -358,6 +359,82 @@ class MainDoclet {
     private static void
     convertDoc(Doc doc, RootDoc rootDoc) throws IOException {
 
+    	final String htmlText = MainDoclet.convertDoc2(doc, rootDoc);
+
+        final ClassDoc cd = (
+            doc.isClass() ? (ClassDoc) doc :
+            doc instanceof MemberDoc ? ((MemberDoc) doc).containingClass() :
+            (ClassDoc) ExceptionUtil.throW(new AssertionError(String.valueOf(doc)))
+        );
+
+        File htmlOutputFile = new File(
+            MainDoclet.destinationDirectory,
+            (
+                cd.qualifiedName().replace('.', File.separatorChar)
+                + "."
+                + doc.name()
+                + (doc instanceof ExecutableMemberDoc ? ((ExecutableMemberDoc) doc).flatSignature() : "")
+                + ".html"
+            )
+        );
+
+        if (!MainDoclet.quiet) System.err.println("Generating \"" + htmlOutputFile + "\"...");
+
+        if (MainDoclet.destinationDirectory.exists() && !htmlOutputFile.getParentFile().isDirectory()) htmlOutputFile.getParentFile().mkdirs();
+
+        IoUtil.outputFilePrintWriter(
+            htmlOutputFile,
+            MainDoclet.htmlOutputFileCharset,
+            new ConsumerWhichThrows<PrintWriter, RuntimeException>() {
+
+                @Override public void
+                consume(PrintWriter pw) {
+
+                    pw.println("<html>");
+                    pw.println("  <head>");
+                    if (MainDoclet.charset != null) {
+                        pw.println(
+                            "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset="
+                            + MainDoclet.charset
+                            + "\" />"
+                        );
+                    }
+                    pw.println("  </head>");
+                    pw.println("  <body>");
+                    if (MainDoclet.doctitle != null) {
+                        pw.println("    <h1>" + MainDoclet.doctitle + "</h1>");
+                    }
+                    pw.println(htmlText.replaceAll("(?m)^", "    "));
+                    pw.println("  </body>");
+                    pw.println("</html>");
+                }
+            }
+        );
+
+        // Convert generated HTML document into plain text format.
+        File txtOutputFile;
+        {
+            String ofn = htmlOutputFile.getName();
+            assert (ofn.endsWith(".html"));
+            ofn = ofn.substring(0, ofn.length() - 5) + ".txt";
+            txtOutputFile = new File(htmlOutputFile.getParentFile(), ofn);
+        }
+
+        if (!MainDoclet.quiet) System.err.println("Generating \"" + txtOutputFile + "\"...");
+
+        try {
+            MainDoclet.html2Txt.html2txt(htmlOutputFile, txtOutputFile);
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (Exception e) {
+            throw new IOException(null, e);
+        }
+    }
+
+
+    private static String
+    convertDoc2(final Doc doc, RootDoc rootDoc) {
+
         final ClassDoc cd = (
             doc.isClass() ? (ClassDoc) doc :
             doc instanceof MemberDoc ? ((MemberDoc) doc).containingClass() :
@@ -485,6 +562,12 @@ class MainDoclet {
                     }
 
                     return sb.toString();
+                } else
+                if (MainDoclet.IT_main_maindoc.equals(tagName)) {
+                	try {
+	                	Doc target = Html.hrefToDoc(tag.text(), rootDoc, cd);
+	                	return MainDoclet.convertDoc2(target, rootDoc);
+                	} catch (Longjump l) {}
                 }
 
                 return super.expandTag(ref, rootDoc, tag);
@@ -580,74 +663,10 @@ class MainDoclet {
             }
         };
 
-        final String htmlText;
         try {
-            htmlText = html.fromTags(doc.inlineTags(), doc, rootDoc);
+            return html.fromTags(doc.inlineTags(), doc, rootDoc);
         } catch (Longjump e) {
-            return;
-        }
-
-        File htmlOutputFile = new File(
-            MainDoclet.destinationDirectory,
-            (
-                cd.qualifiedName().replace('.', File.separatorChar)
-                + "."
-                + doc.name()
-                + (doc instanceof ExecutableMemberDoc ? ((ExecutableMemberDoc) doc).flatSignature() : "")
-                + ".html"
-            )
-        );
-
-        if (!MainDoclet.quiet) System.err.println("Generating \"" + htmlOutputFile + "\"...");
-
-        if (MainDoclet.destinationDirectory.exists() && !htmlOutputFile.getParentFile().isDirectory()) htmlOutputFile.getParentFile().mkdirs();
-
-        IoUtil.outputFilePrintWriter(
-            htmlOutputFile,
-            MainDoclet.htmlOutputFileCharset,
-            new ConsumerWhichThrows<PrintWriter, RuntimeException>() {
-
-                @Override public void
-                consume(PrintWriter pw) {
-
-                    pw.println("<html>");
-                    pw.println("  <head>");
-                    if (MainDoclet.charset != null) {
-                        pw.println(
-                            "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset="
-                            + MainDoclet.charset
-                            + "\" />"
-                        );
-                    }
-                    pw.println("  </head>");
-                    pw.println("  <body>");
-                    if (MainDoclet.doctitle != null) {
-                        pw.println("    <h1>" + MainDoclet.doctitle + "</h1>");
-                    }
-                    pw.println(htmlText.replaceAll("(?m)^", "    "));
-                    pw.println("  </body>");
-                    pw.println("</html>");
-                }
-            }
-        );
-
-        // Convert generated HTML document into plain text format.
-        File txtOutputFile;
-        {
-            String ofn = htmlOutputFile.getName();
-            assert (ofn.endsWith(".html"));
-            ofn = ofn.substring(0, ofn.length() - 5) + ".txt";
-            txtOutputFile = new File(htmlOutputFile.getParentFile(), ofn);
-        }
-
-        if (!MainDoclet.quiet) System.err.println("Generating \"" + txtOutputFile + "\"...");
-
-        try {
-            MainDoclet.html2Txt.html2txt(htmlOutputFile, txtOutputFile);
-        } catch (IOException ioe) {
-            throw ioe;
-        } catch (Exception e) {
-            throw new IOException(null, e);
+            return "";
         }
     }
 
