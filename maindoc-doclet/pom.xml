@@ -96,7 +96,6 @@
 				<configuration>
 					<packages><param>de.unkrig.maindoc.doclet</param></packages>
 					<method>start(RootDoc)</method>
-					<encoding>UTF-8</encoding>
 					<docEncoding>UTF-8</docEncoding>
 					<charset>UTF-8</charset>
 					<quiet>true</quiet>
@@ -172,6 +171,7 @@
 								<tag><name>main.commandLineOptions</name><placement>X</placement></tag>
 								<tag><name>main.commandLineOptionGroup</name><placement>X</placement></tag>
 								<tag><name>main.commandLineOptionComment</name><placement>X</placement></tag>
+								<tag><name>main.maindoc</name><placement>X</placement></tag>
 							</tags>
 						</configuration>
 					</execution>
