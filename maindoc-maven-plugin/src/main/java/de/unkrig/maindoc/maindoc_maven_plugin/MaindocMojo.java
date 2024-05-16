@@ -121,7 +121,7 @@ class MaindocMojo extends AbstractMojo {
         
         int status = com.sun.tools.javadoc.Main.execute(args.toArray(new String[args.size()]));
         
-        if (status != 0) throw new MojoExecutionException("Javadoc failed");
+        if (status != 0) throw new MojoExecutionException("Javadoc failed with status " + status);
     }
 
     private static String
