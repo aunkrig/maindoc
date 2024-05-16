@@ -356,6 +356,10 @@ class MainDoclet {
         return true;
     }
 
+    /**
+     * Generates HTML from the doc comment of the given {@link javax.print.Doc} and stores it a file in the {@link
+     * MainDoclet#setDestination(File) destination directory}.
+     */
     private static void
     convertDoc(Doc doc, RootDoc rootDoc) throws IOException {
 
@@ -431,7 +435,12 @@ class MainDoclet {
         }
     }
 
-
+    /**
+     * Generates HTML from the doc comment of the given {@link javax.print.Doc}, typically a {@link
+     * com.sun.javadox.ClassDoc}.
+     *
+     * @return The generated HTML code
+     */
     private static String
     convertDoc2(final Doc doc, RootDoc rootDoc) {
 
